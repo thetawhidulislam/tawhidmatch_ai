@@ -23,6 +23,7 @@ model User {
   updatedAt    DateTime      @updatedAt
   resumes      Resume[]
   applications Application[]
+  interviews   Interview[]
 
   @@map("users")
 }
@@ -69,6 +70,7 @@ model Job {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   applications    Application[]
+  interviews      Interview[]
 
   @@map("jobs")
 }
@@ -128,6 +130,54 @@ model AIAnalysis {
   updatedAt       DateTime @updatedAt
 
   @@map("ai_analyses")
+}
+
+enum InterviewStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+model Interview {
+  id                  String              @id @default(uuid())
+  userId              String
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId               String
+  job                 Job                 @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  status              InterviewStatus     @default(IN_PROGRESS)
+  technicalScore      Int?
+  communicationScore  Int?
+  problemSolvingScore Int?
+  confidenceScore     Int?
+  overallScore        Int?
+  strengths           String[]
+  improvements        String[]
+  questions           InterviewQuestion[]
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@map("interviews")
+}
+
+model InterviewQuestion {
+  id           String           @id @default(uuid())
+  interviewId  String
+  interview    Interview        @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  questionText String           @db.Text
+  order        Int
+  answer       InterviewAnswer?
+  createdAt    DateTime         @default(now())
+
+  @@map("interview_questions")
+}
+
+model InterviewAnswer {
+  id         String            @id @default(uuid())
+  questionId String            @unique
+  question   InterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answerText String            @db.Text
+  createdAt  DateTime          @default(now())
+
+  @@map("interview_answers")
 }
 
 // NOTE (Phase 5+): Resume, Job, JobSkill, Skill, Application, AIAnalysis,

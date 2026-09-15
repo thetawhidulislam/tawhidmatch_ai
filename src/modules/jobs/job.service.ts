@@ -92,8 +92,22 @@ export const jobService = {
     const resume = await prisma.resume.findFirst({
       where: { userId, isActive: true },
       include: { aianalysis: true },
+      orderBy: { updatedAt: "desc" },
     });
     if (!resume || !resume.aianalysis) {
+      console.error("[JOB MATCH RESUME CHECK]", {
+        userId,
+        resume: resume
+          ? {
+              id: resume.id,
+              userId: resume.userId,
+              isActive: resume.isActive,
+            }
+          : null,
+        aiAnalysis: resume?.aianalysis
+          ? { id: resume.aianalysis.id, resumeId: resume.aianalysis.resumeId }
+          : null,
+      });
       throw ApiError.badRequest(
         "You need an analyzed resume before checking job matches",
         "NO_ACTIVE_RESUME",

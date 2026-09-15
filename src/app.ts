@@ -6,6 +6,7 @@ import authRoutes from "@/modules/auth/auth.route";
 import { adminJobRoutes, publicJobRoutes } from "@/modules/jobs/job.route";
 import resumesRoutes from "@/modules/resumes/resume.route";
 import usersRoutes from "@/modules/users/users.route";
+import interviewRoutes from "@/modules/interviews/interview.route";
 import {
   adminApplicationRoutes,
   userApplicationRoutes,
@@ -38,6 +39,8 @@ app.use("/api/jobs", publicJobRoutes);
 app.use("/api/resumes", resumesRoutes);
 app.use("/api/applications", userApplicationRoutes);
 app.use("/api/admin/applications", adminApplicationRoutes);
+
+app.use("/api/interviews", interviewRoutes);
 
 // --- 404 + centralized error handler (must stay last, in this order) ---
 app.use(notFoundHandler);

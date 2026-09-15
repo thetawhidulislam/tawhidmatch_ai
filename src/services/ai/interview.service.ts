@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import Groq from "groq-sdk";
 import { z } from "zod";
 import { env } from "@/config/env";
 import { ApiError } from "@/utils/ApiError";
@@ -19,7 +19,7 @@ const interviewEvaluationSchema = z.object({
 
 export type InterviewEvaluation = z.infer<typeof interviewEvaluationSchema>;
 
-const ai = new GoogleGenAI({ apiKey: env.geminiApiKey });
+const groq = new Groq({ apiKey: env.groqApiKey });
 
 const questionsSystemPrompt = `You are a technical interviewer. Generate EXACTLY 5 interview questions relevant to the job title, description, and required skills provided. Mix technical and behavioral questions. Respond with ONLY valid JSON, with no markdown fences and no preamble, matching exactly this shape:
 {
@@ -45,7 +45,7 @@ function stripMarkdownFences(text: string): string {
     .trim();
 }
 
-function parseJsonResponse(text: string | undefined): unknown {
+function parseJsonResponse(text: string | null | undefined): unknown {
   if (!text) {
     throw ApiError.internal("AI returned an invalid response", "AI_INVALID_RESPONSE");
   }
@@ -63,11 +63,18 @@ export async function generateInterviewQuestions(job: {
   skills: string[];
 }): Promise<string[]> {
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
-      contents: `${questionsSystemPrompt}\n\nJob title: ${job.title}\nJob description: ${job.description}\nRequired skills: ${job.skills.join(", ")}`,
+    const completion = await groq.chat.completions.create({
+      model: "openai/gpt-oss-120b",
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: questionsSystemPrompt },
+        {
+          role: "user",
+          content: `Job title: ${job.title}\nJob description: ${job.description}\nRequired skills: ${job.skills.join(", ")}`,
+        },
+      ],
     });
-    const parsed = parseJsonResponse(response.text);
+    const parsed = parseJsonResponse(completion.choices[0]?.message.content);
     const validated = interviewQuestionsSchema.safeParse(parsed);
     if (!validated.success) {
       throw ApiError.internal("AI returned an invalid response", "AI_INVALID_RESPONSE");
@@ -86,16 +93,20 @@ export async function evaluateInterview(
   qaPairs: { question: string; answer: string }[],
 ): Promise<InterviewEvaluation> {
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
-      contents: `${evaluationSystemPrompt}\n\nQuestion and answer pairs:\n${qaPairs
+    const completion = await groq.chat.completions.create({
+      model: "openai/gpt-oss-120b",
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: evaluationSystemPrompt },
+        { content: `Question and answer pairs:\n${qaPairs
         .map(
           (pair, index) =>
             `${index + 1}. Question: ${pair.question}\nAnswer: ${pair.answer}`,
         )
-        .join("\n\n")}`,
+        .join("\n\n")}`, role: "user" },
+      ],
     });
-    const parsed = parseJsonResponse(response.text);
+    const parsed = parseJsonResponse(completion.choices[0]?.message.content);
     const validated = interviewEvaluationSchema.safeParse(parsed);
     if (!validated.success) {
       throw ApiError.internal("AI returned an invalid response", "AI_INVALID_RESPONSE");

@@ -48,4 +48,13 @@ export const jobController = {
       next(err);
     }
   },
+
+  async matchJob(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await jobService.calculateJobMatch(req.user!.userId, req.params.id);
+      return sendSuccess(res, result, "Job match calculated");
+    } catch (err) {
+      next(err);
+    }
+  },
 };

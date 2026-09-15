@@ -36,3 +36,9 @@ adminJobRoutes.delete(
 
 publicJobRoutes.get("/", validate(listJobsQuerySchema), jobController.list);
 publicJobRoutes.get("/:id", validate(jobIdParamSchema), jobController.getOne);
+publicJobRoutes.get(
+  "/:id/match",
+  requireAuth,
+  validate(jobIdParamSchema),
+  jobController.matchJob,
+);

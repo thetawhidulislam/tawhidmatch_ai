@@ -15,7 +15,7 @@ export const env = {
   nodeEnv: process.env.NODE_ENV || "development",
   databaseUrl: required("DATABASE_URL"),
   jwtSecret: required("JWT_SECRET"),
-  geminiApiKey: required("GEMINI_API_KEY"),
+  groqApiKey: required("GROQ_API_KEY"),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   clientUrl: process.env.CLIENT_URL || "http://localhost:3000",
 };

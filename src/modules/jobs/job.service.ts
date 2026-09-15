@@ -3,6 +3,21 @@ import { prisma } from "@/database/prisma";
 import { ApiError } from "@/utils/ApiError";
 import { CreateJobInput, ListJobsQuery, UpdateJobInput } from "./job.schema";
 
+function extractSkillNames(skills: Prisma.JsonValue): Set<string> {
+  if (!Array.isArray(skills)) return new Set<string>();
+
+  const skillNames = skills.flatMap((skill): string[] => {
+    if (typeof skill !== "object" || skill === null || Array.isArray(skill)) {
+      return [];
+    }
+
+    const name = (skill as { name?: unknown }).name;
+    return typeof name === "string" ? [name.trim().toLowerCase()] : [];
+  });
+
+  return new Set(skillNames);
+}
+
 export const jobService = {
   async createJob(data: CreateJobInput) {
     return prisma.job.create({ data });
@@ -68,5 +83,45 @@ export const jobService = {
     const job = await prisma.job.findUnique({ where: { id: jobId } });
     if (!job) throw ApiError.notFound("Job not found");
     return job;
+  },
+
+  async calculateJobMatch(userId: string, jobId: string) {
+    const job = await prisma.job.findUnique({ where: { id: jobId } });
+    if (!job) throw ApiError.notFound("Job not found");
+
+    const resume = await prisma.resume.findFirst({
+      where: { userId, isActive: true },
+      include: { aianalysis: true },
+    });
+    if (!resume || !resume.aianalysis) {
+      throw ApiError.badRequest(
+        "You need an analyzed resume before checking job matches",
+        "NO_ACTIVE_RESUME",
+      );
+    }
+
+    const resumeSkillNames = extractSkillNames(resume.aianalysis.skills);
+    const matched: string[] = [];
+    const missing: string[] = [];
+
+    for (const skill of job.skills) {
+      if (resumeSkillNames.has(skill.trim().toLowerCase())) {
+        matched.push(skill);
+      } else {
+        missing.push(skill);
+      }
+    }
+
+    const matchScore =
+      job.skills.length === 0 ? 0 : Math.round((matched.length / job.skills.length) * 100);
+
+    return {
+      jobId,
+      jobTitle: job.title,
+      matchScore,
+      matched,
+      missing,
+      resumeId: resume.id,
+    };
   },
 };

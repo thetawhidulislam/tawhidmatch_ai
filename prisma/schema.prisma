@@ -13,15 +13,16 @@ enum Role {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role     @default(USER)
-  profile   Profile?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  resumes   Resume[]
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  password     String
+  role         Role          @default(USER)
+  profile      Profile?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  resumes      Resume[]
+  applications Application[]
 
   @@map("users")
 }
@@ -54,36 +55,62 @@ enum JobStatus {
 }
 
 model Job {
-  id              String    @id @default(uuid())
+  id              String        @id @default(uuid())
   title           String
   company         String
-  description     String    @db.Text
+  description     String        @db.Text
   location        String
   jobType         JobType
   experienceLevel String // e.g. "Junior", "Mid", "Senior"
   skills          String[]
   salaryMin       Int?
   salaryMax       Int?
-  status          JobStatus @default(OPEN)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  status          JobStatus     @default(OPEN)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  applications    Application[]
 
   @@map("jobs")
 }
 
 model Resume {
-  id         String   @id @default(uuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fileName   String
-  fileUrl    String
-  fileSize   Int
-  parsedText String?  @db.Text
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id           String        @id @default(uuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileName     String
+  fileUrl      String
+  fileSize     Int
+  parsedText   String?       @db.Text
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
 
   @@map("resumes")
+}
+
+enum ApplicationStatus {
+  APPLIED
+  SHORTLISTED
+  INTERVIEW
+  REJECTED
+  HIRED
+}
+
+model Application {
+  id        String            @id @default(uuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId     String
+  job       Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resumeId  String
+  resume    Resume            @relation(fields: [resumeId], references: [id])
+  status    ApplicationStatus @default(APPLIED)
+  appliedAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@unique([userId, jobId]) // same user can't apply to the same job twice
+  @@map("applications")
 }
 
 // NOTE (Phase 5+): Resume, Job, JobSkill, Skill, Application, AIAnalysis,

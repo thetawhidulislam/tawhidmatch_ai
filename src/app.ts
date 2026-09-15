@@ -4,6 +4,7 @@ import { env } from "@/config/env";
 import { errorHandler, notFoundHandler } from "@/middleware/error.middleware";
 import authRoutes from "@/modules/auth/auth.route";
 import { adminJobRoutes, publicJobRoutes } from "@/modules/jobs/job.route";
+import resumesRoutes from "@/modules/resumes/resume.route";
 import usersRoutes from "@/modules/users/users.route";
 
 const app = express();
@@ -30,6 +31,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/admin/jobs", adminJobRoutes);
 app.use("/api/jobs", publicJobRoutes);
+app.use("/api/resumes", resumesRoutes); 
 
 // --- 404 + centralized error handler (must stay last, in this order) ---
 app.use(notFoundHandler);

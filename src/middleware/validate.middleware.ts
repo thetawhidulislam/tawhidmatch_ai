@@ -15,6 +15,8 @@ export function validate(schema: AnyZodObject) {
         params: req.params,
       });
       req.body = parsed.body ?? req.body;
+      req.query = parsed.query ?? req.query;
+      req.params = parsed.params ?? req.params;
       next();
     } catch (err) {
       if (err instanceof ZodError) {

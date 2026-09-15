@@ -3,6 +3,7 @@ import express, { Request, Response } from "express";
 import { env } from "@/config/env";
 import { errorHandler, notFoundHandler } from "@/middleware/error.middleware";
 import authRoutes from "@/modules/auth/auth.route";
+import { adminJobRoutes, publicJobRoutes } from "@/modules/jobs/job.route";
 import usersRoutes from "@/modules/users/users.route";
 
 const app = express();
@@ -27,6 +28,8 @@ app.get("/health", (_req: Request, res: Response) => {
 // mount them here the same way — keep this file as the single routing map.
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
+app.use("/api/admin/jobs", adminJobRoutes);
+app.use("/api/jobs", publicJobRoutes);
 
 // --- 404 + centralized error handler (must stay last, in this order) ---
 app.use(notFoundHandler);

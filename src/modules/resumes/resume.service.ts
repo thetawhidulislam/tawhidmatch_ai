@@ -1,6 +1,7 @@
 import fs from "fs";
 import { PDFParse } from "pdf-parse";
 import { prisma } from "@/database/prisma";
+import { analyzeCvText } from "@/services/ai/cv-analysis.service";
 import { ApiError } from "@/utils/ApiError";
 
 export const resumeService = {
@@ -52,6 +53,51 @@ export const resumeService = {
     }
 
     return resume;
+  },
+
+  async analyzeResume(userId: string, resumeId: string) {
+    const resume = await this.getResumeById(userId, resumeId);
+    if (!resume.parsedText?.trim()) {
+      throw ApiError.badRequest(
+        "This resume has no extracted text to analyze",
+        "NO_PARSED_TEXT",
+      );
+    }
+
+    const analysis = await analyzeCvText(resume.parsedText);
+    return prisma.aIAnalysis.upsert({
+      where: { resumeId },
+      create: {
+        resumeId,
+        score: analysis.score,
+        level: analysis.level,
+        skills: analysis.skills,
+        strengths: analysis.strengths,
+        missingSkills: analysis.missingSkills,
+        recommendations: analysis.recommendations,
+      },
+      update: {
+        score: analysis.score,
+        level: analysis.level,
+        skills: analysis.skills,
+        strengths: analysis.strengths,
+        missingSkills: analysis.missingSkills,
+        recommendations: analysis.recommendations,
+      },
+      include: {
+        resume: {
+          select: {
+            id: true,
+            fileName: true,
+            fileUrl: true,
+            fileSize: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+    });
   },
 
   async deleteResume(userId: string, resumeId: string) {

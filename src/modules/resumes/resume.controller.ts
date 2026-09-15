@@ -34,6 +34,15 @@ export const resumeController = {
     }
   },
 
+  async analyze(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await resumeService.analyzeResume(req.user!.userId, req.params.id);
+      return sendSuccess(res, result, "CV analyzed successfully");
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async remove(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await resumeService.deleteResume(req.user!.userId, req.params.id);

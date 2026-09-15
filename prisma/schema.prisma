@@ -85,6 +85,7 @@ model Resume {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   applications Application[]
+  aianalysis   AIAnalysis?
 
   @@map("resumes")
 }
@@ -111,6 +112,22 @@ model Application {
 
   @@unique([userId, jobId]) // same user can't apply to the same job twice
   @@map("applications")
+}
+
+model AIAnalysis {
+  id              String   @id @default(uuid())
+  resumeId        String   @unique
+  resume          Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  score           Int
+  level           String
+  skills          Json
+  strengths       String[]
+  missingSkills   String[]
+  recommendations String[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("ai_analyses")
 }
 
 // NOTE (Phase 5+): Resume, Job, JobSkill, Skill, Application, AIAnalysis,

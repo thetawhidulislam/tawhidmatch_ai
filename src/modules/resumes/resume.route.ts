@@ -25,6 +25,7 @@ function uploadSingle(req: Request, res: Response, next: NextFunction) {
 router.post("/", requireAuth, uploadSingle, resumeController.upload);
 router.get("/", requireAuth, resumeController.list);
 router.get("/:id", requireAuth, validate(resumeIdParamSchema), resumeController.getOne);
+router.post("/:id/analyze", requireAuth, validate(resumeIdParamSchema), resumeController.analyze);
 router.delete("/:id", requireAuth, validate(resumeIdParamSchema), resumeController.remove);
 
 export default router;

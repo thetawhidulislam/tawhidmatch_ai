@@ -4,6 +4,15 @@ import { jobService } from "./job.service";
 import { ListJobsQuery } from "./job.schema";
 
 export const jobController = {
+  async getApplicationCounts(_req: Request, res: Response, next: NextFunction) {
+    try {
+      const counts = await jobService.getApplicationCounts();
+      return sendSuccess(res, counts, "Application counts fetched");
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const job = await jobService.createJob(req.body);

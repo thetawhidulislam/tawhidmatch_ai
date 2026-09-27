@@ -124,6 +124,19 @@ export const interviewService = {
     return interview;
   },
 
+  async getInterviewById(userId: string, interviewId: string) {
+    const interview = await prisma.interview.findUnique({
+      where: { id: interviewId },
+      include: questionWithAnswerInclude,
+    });
+    if (!interview) throw ApiError.notFound("Interview not found");
+    if (interview.userId !== userId) {
+      throw ApiError.forbidden("You don't have access to this interview");
+    }
+
+    return interview;
+  },
+
   async listMyInterviews(userId: string) {
     return prisma.interview.findMany({
       where: { userId },

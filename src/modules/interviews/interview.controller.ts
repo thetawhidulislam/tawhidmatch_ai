@@ -41,6 +41,18 @@ export const interviewController = {
     }
   },
 
+  async getOne(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await interviewService.getInterviewById(
+        req.user!.userId,
+        req.params.id,
+      );
+      return sendSuccess(res, result, "Interview fetched");
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async listMine(req: Request, res: Response, next: NextFunction) {
     try {
       const interviews = await interviewService.listMyInterviews(req.user!.userId);

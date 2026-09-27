@@ -29,6 +29,7 @@ router.get(
 	validate(interviewIdParamSchema),
 	interviewController.getResult,
 );
+router.get("/:id", requireAuth, validate(interviewIdParamSchema), interviewController.getOne);
 router.get("/", requireAuth, interviewController.listMine);
 
 export default router;

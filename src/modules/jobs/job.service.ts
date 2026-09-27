@@ -19,6 +19,18 @@ function extractSkillNames(skills: Prisma.JsonValue): Set<string> {
 }
 
 export const jobService = {
+  async getApplicationCounts(): Promise<Record<string, number>> {
+    const groupedCounts = await prisma.application.groupBy({
+      by: ["jobId"],
+      _count: true,
+    });
+
+    return groupedCounts.reduce<Record<string, number>>((counts, { jobId, _count }) => {
+      counts[jobId] = _count;
+      return counts;
+    }, {});
+  },
+
   async createJob(data: CreateJobInput) {
     return prisma.job.create({ data });
   },

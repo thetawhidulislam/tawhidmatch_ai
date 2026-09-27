@@ -40,12 +40,16 @@ export const resumeService = {
   async listResumes(userId: string) {
     return prisma.resume.findMany({
       where: { userId },
+      include: { aianalysis: true },
       orderBy: { createdAt: "desc" },
     });
   },
 
   async getResumeById(userId: string, resumeId: string) {
-    const resume = await prisma.resume.findUnique({ where: { id: resumeId } });
+    const resume = await prisma.resume.findUnique({
+      where: { id: resumeId },
+      include: { aianalysis: true },
+    });
 
     if (!resume) throw ApiError.notFound("Resume not found");
     if (resume.userId !== userId) {

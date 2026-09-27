@@ -12,6 +12,12 @@ import {
 export const adminJobRoutes = Router();
 export const publicJobRoutes = Router();
 
+adminJobRoutes.get(
+  "/application-counts",
+  requireAuth,
+  requireAdmin,
+  jobController.getApplicationCounts,
+);
 adminJobRoutes.post(
   "/",
   requireAuth,
